@@ -1,3 +1,4 @@
+import { useLoading } from "@/hooks/use-loading";
 import { Avatar, Center, Flex, HStack, Icon, IconButton, Input, Text, VStack } from "@chakra-ui/react";
 import Head from "next/head";
 import { FormEvent, useState } from "react";
@@ -37,15 +38,14 @@ export default function Home() {
     content: "Olá, como posso te ajudar com suas dúvidas sobre a UFCG ?",
     isUser: false
   }])
+  const {
+    loading,
+    withLoading
+  } = useLoading()
 
   async function handleSendMessage(e?: FormEvent) {
     if (e) e.preventDefault()
-    // const chunks = [
-    //   "Res",
-    //   "pond",
-    //   "endo",
-    //   "..."
-    // ]
+    await withLoading(new Promise(resolve => setTimeout(resolve, 1000)))
     setMessages(prev => [
       ...prev,
       {
@@ -57,13 +57,6 @@ export default function Home() {
         isUser: false
       }
     ])
-    // for (const chunk of chunks) {
-    //   setMessages(prev => {
-    //     prev[prev.length - 1].content += chunk 
-    //     return prev
-    //   })
-    //   await new Promise(resolve => setTimeout(resolve, 100))
-    // }
     setCurrentMessage("")
   }
 
@@ -106,6 +99,7 @@ export default function Home() {
             <Input
             bg="transparent"
             focusBorderColor="transparent"
+            isDisabled={loading}
             mr={1}
             border="none"
             value={currentMessage}
@@ -115,6 +109,7 @@ export default function Home() {
             colorScheme='green'
             aria-label='Search database'
             onClick={handleSendMessage}
+            isLoading={loading}
             boxShadow="0 3px 10px 2px rgba( 31, 38, 135, 0.2 )"
             bg="rgba( 154, 230, 180, 0.25 )"
             transition="0.25s ease-in-out"
