@@ -1,20 +1,72 @@
+import { Avatar, Center, Flex, HStack, Icon, IconButton, Input, Text, VStack } from "@chakra-ui/react";
 import Head from "next/head";
-import Image from "next/image";
-import localFont from "next/font/local";
-import styles from "@/styles/Home.module.css";
+import { FormEvent, useRef, useState } from "react";
+import { FaLocationArrow } from "react-icons/fa";
 
-const geistSans = localFont({
-  src: "./fonts/GeistVF.woff",
-  variable: "--font-geist-sans",
-  weight: "100 900",
-});
-const geistMono = localFont({
-  src: "./fonts/GeistMonoVF.woff",
-  variable: "--font-geist-mono",
-  weight: "100 900",
-});
+type MessageProps = {
+  content: string;
+  isUser: boolean;
+}
+
+const Message: React.FC<MessageProps> = ({
+  content,
+  isUser
+}) => {
+  return (
+    <Center bg={isUser ? "purple.200" : ""} w="100%" py={6}
+    >
+      <HStack w="container.md" h="fit-content" spacing={4} mx={[5, 0]}>
+        <Avatar
+        />
+        <Text color="#4E4187">
+          { content }
+        </Text>
+      </HStack>
+    </Center>
+  )
+}
+
+type Message = {
+  content: string;
+  isUser: boolean;
+}
 
 export default function Home() {
+  const [currentMessage, setCurrentMessage] = useState("")
+  const [messages, setMessages] = useState<Array<Message>>([{
+    content: "Olá, como posso te ajudar com suas dúvidas sobre a UFCG ?",
+    isUser: false
+  }])
+
+  async function handleSendMessage(e?: FormEvent) {
+    if (e) e.preventDefault()
+    // const chunks = [
+    //   "Res",
+    //   "pond",
+    //   "endo",
+    //   "..."
+    // ]
+    setMessages(prev => [
+      ...prev,
+      {
+        content: currentMessage,
+        isUser: true
+      },
+      {
+        content: "Respondendo...",
+        isUser: false
+      }
+    ])
+    // for (const chunk of chunks) {
+    //   setMessages(prev => {
+    //     prev[prev.length - 1].content += chunk 
+    //     return prev
+    //   })
+    //   await new Promise(resolve => setTimeout(resolve, 100))
+    // }
+    setCurrentMessage("")
+  }
+
   return (
     <>
       <Head>
@@ -23,96 +75,63 @@ export default function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <div
-        className={`${styles.page} ${geistSans.variable} ${geistMono.variable}`}
-      >
-        <main className={styles.main}>
-          <Image
-            className={styles.logo}
-            src="https://nextjs.org/icons/next.svg"
-            alt="Next.js logo"
-            width={180}
-            height={38}
-            priority
-          />
-          <ol>
-            <li>
-              Get started by editing <code>src/pages/index.tsx</code>.
-            </li>
-            <li>Save and see your changes instantly.</li>
-          </ol>
-
-          <div className={styles.ctas}>
-            <a
-              className={styles.primary}
-              href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <Image
-                className={styles.logo}
-                src="https://nextjs.org/icons/vercel.svg"
-                alt="Vercel logomark"
-                width={20}
-                height={20}
-              />
-              Deploy now
-            </a>
-            <a
-              href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-              className={styles.secondary}
-            >
-              Read our docs
-            </a>
-          </div>
-        </main>
-        <footer className={styles.footer}>
-          <a
-            href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+      <Flex as="main" h="100vh" bg="whitesmoke" flexDir="column">
+        <VStack spacing={0} flex={1} overflowY="scroll"
+          sx={
+            { 
+           '::-webkit-scrollbar':{
+                  display:'none'
+              }
+           }
+         }
+        >
+          {
+            messages.map((message, index) => (
+              <Message key={index} content={message.content} isUser={message.isUser} />
+            ))
+          }
+        </VStack>
+        <Center my={5} w="100%">
+          <Flex 
+          as="form"
+          background="purple.200"
+          w="container.sm" 
+          color="#4E4187" 
+          borderRadius={25} 
+          py={2} 
+          px={2}
+          boxShadow="0 3px 10px 2px rgba( 31, 38, 135, 0.2 )"
+          backdropBlur="4px"
+          onSubmit={e => handleSendMessage(e)}
+          mx={[2, 0]}
           >
-            <Image
-              aria-hidden
-              src="https://nextjs.org/icons/file.svg"
-              alt="File icon"
-              width={16}
-              height={16}
+            <Input
+            bg="transparent"
+            focusBorderColor="transparent"
+            mr={1}
+            border="none"
+            value={currentMessage}
+            onChange={e => setCurrentMessage(e.target.value)}
             />
-            Learn
-          </a>
-          <a
-            href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              aria-hidden
-              src="https://nextjs.org/icons/window.svg"
-              alt="Window icon"
-              width={16}
-              height={16}
+            <IconButton
+            colorScheme='green'
+            aria-label='Search database'
+            onClick={handleSendMessage}
+            boxShadow="0 3px 10px 2px rgba( 31, 38, 135, 0.2 )"
+            bg="rgba( 154, 230, 180, 0.25 )"
+            transition="0.25s ease-in-out"
+            backdropBlur="4px"
+            icon={<Icon
+              w={5} 
+              h={5} 
+              color="whitesmoke"
+              transform="rotateZ(45deg)"
+              as={FaLocationArrow}/>}
+            borderRadius="100%"
             />
-            Examples
-          </a>
-          <a
-            href="https://nextjs.org?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              aria-hidden
-              src="https://nextjs.org/icons/globe.svg"
-              alt="Globe icon"
-              width={16}
-              height={16}
-            />
-            Go to nextjs.org →
-          </a>
-        </footer>
-      </div>
+          </Flex>
+        </Center>
+      </Flex>
     </>
   );
 }
