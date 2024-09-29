@@ -1,6 +1,6 @@
 import { Avatar, Center, Flex, HStack, Icon, IconButton, Input, Text, VStack } from "@chakra-ui/react";
 import Head from "next/head";
-import { FormEvent, useRef, useState } from "react";
+import { FormEvent, useState } from "react";
 import { FaLocationArrow } from "react-icons/fa";
 
 type MessageProps = {
