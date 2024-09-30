@@ -97,7 +97,8 @@ export default async function handler(
 
   const answerPrompt = ChatPromptTemplate.fromMessages([
     SystemMessagePromptTemplate.fromTemplate("Você é um assistente útil que responde questionamentos de usuários que eles possuem acerca de documentos."),
-    HumanMessagePromptTemplate.fromTemplate("Você deve responder a seguinte pergunta: {query}, com base apenas nos seguintes trechos extraídos de documentos relevantes: {context}.")
+    HumanMessagePromptTemplate.fromTemplate(`Você deve responder a seguinte pergunta: {query}, com base apenas nos seguintes trechos extraídos de documentos relevantes: {context}. 
+      Você não precisa fazer citações diretas sobre os trechos informados, apenas responda a pergunta que lhe foi socilitada de forma direta com as informações que você possui.`)
   ])
 
   const formattedAnswerPrompt = await answerPrompt.formatMessages({

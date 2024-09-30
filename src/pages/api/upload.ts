@@ -5,6 +5,7 @@ import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import { Pinecone as PineconeClient } from "@pinecone-database/pinecone";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { randomUUID } from "node:crypto";
+import { Document } from "@langchain/core/documents"
 
 type Response = {
   response: string;
@@ -14,12 +15,12 @@ export default async function handler(
   _: NextApiRequest,
   res: NextApiResponse<Response>,
 ) {
-    const loader = new PDFLoader("/home/pc/Documentos/projetos/pln/src/docs/guia-23.2.pdf");
+    const loader = new PDFLoader("/home/pc/Documentos/projetos/pln/src/docs/computacao.pdf");
     const docs = await loader.load();
     
     const textSplitter = new RecursiveCharacterTextSplitter({
       chunkSize: 1000,
-      chunkOverlap: 200,
+      chunkOverlap: 200
     });
     const splits = await textSplitter.splitDocuments(docs);
 
@@ -35,7 +36,31 @@ export default async function handler(
       pineconeIndex,
       maxConcurrency: 5
     });
-    await vs.addDocuments(splits, Array.from({length: splits.length}).map(_ => randomUUID()));
+
+    let chunks: Document<Record<string, any>>[] = []
+    let chunkIds: Array<string> = []
+    let i = 1;
+    // fez 20 rodadas
+    while (splits.length > 0) {
+        chunks.push(splits.pop()!)
+        chunkIds.push(randomUUID())
+
+        if (chunks.length >= 10) {
+            console.log(`Iniciando rodada ${i} de adição...`)
+
+            await vs.addDocuments(chunks, chunkIds);
+            chunks = []
+            chunkIds = []
+
+            console.log(`Rodada ${i} de adição concluída.`)
+        }
+    }
+
+    if (chunks.length > 0) {
+        await vs.addDocuments(chunks, chunkIds);
+        chunks = []
+        chunkIds = []
+    }
 
     res.status(200).json({ response: "Documentos adicionados com sucesso!" });
 }
