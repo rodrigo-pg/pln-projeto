@@ -3,6 +3,7 @@ import { Avatar, Center, Flex, HStack, Icon, IconButton, Input, Text, VStack } f
 import Head from "next/head";
 import { FormEvent, useState } from "react";
 import { FaLocationArrow } from "react-icons/fa";
+import axios from "axios";
 
 type MessageProps = {
   content: string;
@@ -45,15 +46,18 @@ export default function Home() {
 
   async function handleSendMessage(e?: FormEvent) {
     if (e) e.preventDefault()
-    await withLoading(new Promise(resolve => setTimeout(resolve, 1000)))
+      setMessages(prev => [
+        ...prev,
+        {
+          content: currentMessage,
+          isUser: true
+        }
+      ])
+    const response = await withLoading(axios.get(`/api/ask?query=${currentMessage}`))
     setMessages(prev => [
       ...prev,
       {
-        content: currentMessage,
-        isUser: true
-      },
-      {
-        content: "Respondendo...",
+        content: response.data["answer"],
         isUser: false
       }
     ])
