@@ -14,7 +14,6 @@ export default async function handler(
   _: NextApiRequest,
   res: NextApiResponse<Response>,
 ) {
-
     const loader = new PDFLoader("/home/pc/Documentos/projetos/pln/src/docs/guia-23.2.pdf");
     const docs = await loader.load();
     

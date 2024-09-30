@@ -25,7 +25,7 @@ function calculateRRFScore(ranks: number[]): number {
 function applyRRF(docsByQuery: Record<string, [DocumentInterface<Record<string, any>>, number][]>, topN: number = 5): DocWithRRFScore[] {
   const allDocs = new Map<string, DocWithRanks>();
 
-  Object.values(docsByQuery).forEach((queryResults, _) => {
+  Object.values(docsByQuery).forEach((queryResults) => {
     queryResults.forEach(([doc], rank) => {
       const docId = doc.id || doc.pageContent;
       if (!allDocs.has(docId)) {
