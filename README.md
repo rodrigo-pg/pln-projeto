@@ -31,7 +31,7 @@ Caso você não tenha o ```pnpm``` instalado pode utilizar ```npm``` ou ```yarn`
 
 ## Acesando o projeto
 
-Você pode acessá-lo diretamente através do link https://projeto-pln.vercel.app.
+Você pode acessá-lo diretamente através do link https://pln-projeto.vercel.app.
 
 ## Estrutura
 
