@@ -2,6 +2,7 @@ import { HuggingFaceInferenceEmbeddings } from "@langchain/community/embeddings/
 import { DocumentInterface } from "@langchain/core/documents";
 import { ChatPromptTemplate, HumanMessagePromptTemplate, SystemMessagePromptTemplate } from "@langchain/core/prompts";
 import { ChatGroq } from "@langchain/groq";
+import { OpenAIEmbeddings } from "@langchain/openai";
 import { PineconeStore } from "@langchain/pinecone";
 import { Pinecone as PineconeClient } from "@pinecone-database/pinecone";
 import type { NextApiRequest, NextApiResponse } from "next";
@@ -50,10 +51,10 @@ export default async function handler(
   res: NextApiResponse,
 ) {
   const { query } = req.query;
-  const embeddingModel = new HuggingFaceInferenceEmbeddings({
-    model: "intfloat/multilingual-e5-large",
-    apiKey: process.env["HUGGING_FACE_API_KEY"]
-  });
+  const embeddingModel = new OpenAIEmbeddings({
+    apiKey: process.env["OPENAI_API_KEY"],
+    model: "text-embedding-3-small"
+  })
   const model = new ChatGroq({
     apiKey: process.env["GROQ_API_KEY"],
     model: "llama-3.1-70b-versatile"
@@ -62,15 +63,15 @@ export default async function handler(
   const pinecone = new PineconeClient({
     apiKey: process.env["PINECONE_API_KEY"] as string
   });
-  const pineconeIndex = pinecone.Index("pln-docs");
+  const pineconeIndex = pinecone.Index("pln-docs-openai");
   const vs = await PineconeStore.fromExistingIndex(embeddingModel, {
     pineconeIndex,
     maxConcurrency: 5
   });
 
   const prompt = ChatPromptTemplate.fromMessages([
-    SystemMessagePromptTemplate.fromTemplate("Você é um assistente útil que gera várias consultas de pesquisa com base em uma única consulta de entrada."),
-    HumanMessagePromptTemplate.fromTemplate("Gere 4 consultas de pesquisa relacionadas a: {query}. Você deve retornar apenas a lista de consultas sem numeração e sem qualquer texto adicional")
+    SystemMessagePromptTemplate.fromTemplate("Você é um assistente útil que gera várias consultas de pesquisa para serem utilizadas em documentos oficiais da UFCG (Universidade Federal de Campina Grande) com base em uma única consulta de entrada."),
+    HumanMessagePromptTemplate.fromTemplate("Gere 2 consultas de pesquisa relacionadas a: {query}. Você deve retornar apenas a lista de consultas sem numeração e sem qualquer texto adicional")
   ])
 
   const formattedPrompt = await prompt.formatMessages({
@@ -78,8 +79,10 @@ export default async function handler(
   });
 
   const response = await model.invoke(formattedPrompt);
-  const queries = response.content.toString().split("\n");
+  const queries = response.content.toString().split("\n").concat(query as string);
   const docsByQuery: Record<string, [DocumentInterface<Record<string, any>>, number][]> = {}
+
+  console.log(await vs.asRetriever().invoke(query as string))
 
   for (const query of queries) {
     const result = await vs.similaritySearchWithScore(query, 5)
@@ -87,13 +90,14 @@ export default async function handler(
   }
 
   const rrfDocs = applyRRF(docsByQuery)
-  const context = rrfDocs.reduce((prev, curr, index) => {
+
+  const context = rrfDocs.reduce((prev, curr, _) => {
     return prev + curr.doc.pageContent + "\n"
   }, "")
 
   const answerPrompt = ChatPromptTemplate.fromMessages([
     SystemMessagePromptTemplate.fromTemplate("Você é um assistente útil que responde questionamentos de usuários que eles possuem acerca de documentos."),
-    HumanMessagePromptTemplate.fromTemplate(`Você deve responder a seguinte pergunta: {query}, com base apenas no seguinte contexto: {context}.`)
+    HumanMessagePromptTemplate.fromTemplate(`Você deve responder a seguinte pergunta: {query}, com base apenas no seguinte contexto: {context}. Caso você não tenha informações suficientes para responder, apenas diga que não possui informações suficientes, sem justificativas adicionais.`)
   ])
 
   const formattedAnswerPrompt = await answerPrompt.formatMessages({

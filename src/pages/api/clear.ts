@@ -1,4 +1,5 @@
 import { HuggingFaceInferenceEmbeddings } from "@langchain/community/embeddings/hf";
+import { OpenAIEmbeddings } from "@langchain/openai";
 import { PineconeStore } from "@langchain/pinecone";
 import { Pinecone as PineconeClient } from "@pinecone-database/pinecone";
 import type { NextApiRequest, NextApiResponse } from "next";
@@ -11,14 +12,14 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<Response>,
 ) {
-    const embeddingModel = new HuggingFaceInferenceEmbeddings({
-        model: "intfloat/multilingual-e5-large",
-        apiKey: process.env["HUGGING_FACE_API_KEY"]
-    });
+    const embeddingModel = new OpenAIEmbeddings({
+        apiKey: process.env["OPENAI_API_KEY"],
+        model: "text-embedding-3-small"
+    })
     const pinecone = new PineconeClient({
       apiKey: process.env["PINECONE_API_KEY"] as string
     });
-    const pineconeIndex = pinecone.Index("pln-docs");
+    const pineconeIndex = pinecone.Index("pln-docs-openai");
     const vs = await PineconeStore.fromExistingIndex(embeddingModel, {
       pineconeIndex,
       maxConcurrency: 5

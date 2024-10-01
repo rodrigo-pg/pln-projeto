@@ -21,17 +21,17 @@ Para rodar o projeto basta:
 ```bash
 pnpm i
 ```
-2. Executar o projeto:
+2. Adicionar suas próprias keys:
+
+Você deve criar um ```.env``` assim como está no ```.env.example``` e adicionar suas próprias chaves
+
+3. Executar o projeto:
 
 ```bash
 pnpm dev
 ```
 
 Caso você não tenha o ```pnpm``` instalado pode utilizar ```npm``` ou ```yarn```.
-
-## Acesando o projeto
-
-Você pode acessá-lo diretamente através do link https://pln-projeto.vercel.app.
 
 ## Estrutura
 
