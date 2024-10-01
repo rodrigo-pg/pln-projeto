@@ -18,7 +18,7 @@ export default async function handler(
   _: NextApiRequest,
   res: NextApiResponse<Response>,
 ) {
-    const pdf = await pdfParse(fs.readFileSync("/home/pc/Documentos/projetos/pln/src/docs/computacao.pdf"))
+    const pdf = await pdfParse(fs.readFileSync("/home/pc/Documentos/projetos/pln/src/docs/atividades.pdf"))
     const docs = [
         new Document({
             pageContent: pdf.text
