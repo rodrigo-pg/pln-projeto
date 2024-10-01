@@ -5,7 +5,6 @@ import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import { Pinecone as PineconeClient } from "@pinecone-database/pinecone";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { randomUUID } from "node:crypto";
-import { Document } from "@langchain/core/documents"
 
 type Response = {
   response: string;
@@ -37,30 +36,7 @@ export default async function handler(
       maxConcurrency: 5
     });
 
-    let chunks: Document<Record<string, any>>[] = []
-    let chunkIds: Array<string> = []
-    let i = 1;
-    // fez 20 rodadas
-    while (splits.length > 0) {
-        chunks.push(splits.pop()!)
-        chunkIds.push(randomUUID())
-
-        if (chunks.length >= 10) {
-            console.log(`Iniciando rodada ${i} de adição...`)
-
-            await vs.addDocuments(chunks, chunkIds);
-            chunks = []
-            chunkIds = []
-
-            console.log(`Rodada ${i} de adição concluída.`)
-        }
-    }
-
-    if (chunks.length > 0) {
-        await vs.addDocuments(chunks, chunkIds);
-        chunks = []
-        chunkIds = []
-    }
+    await vs.addDocuments(splits, Array.from({length: splits.length}).map(_ => randomUUID()))
 
     res.status(200).json({ response: "Documentos adicionados com sucesso!" });
 }
